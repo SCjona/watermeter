@@ -57,7 +57,7 @@ Create a file named `config.json` based off the [configration example in this re
 Once you have your image and configuration ready, you can run the detector in one simple command:
 
 ```bash
-docker run --rm -v $PWD:/app/data ghcr.io/SCjona/watermeter run \
+docker run --rm -v $PWD:/app/data ghcr.io/scjona/watermeter run \
   --image data/image.png \
   --config data/config.json \
   --value data/result.txt

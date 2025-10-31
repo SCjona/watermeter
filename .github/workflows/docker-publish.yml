@@ -27,10 +27,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/watermeter:latest
+          IMAGE_NAME=ghcr.io/scjona/watermeter:latest
           docker build -t $IMAGE_NAME .
 
       - name: Push Docker image
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/watermeter:latest
+          IMAGE_NAME=ghcr.io/scjona/watermeter:latest
           docker push $IMAGE_NAME

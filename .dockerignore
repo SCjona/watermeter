@@ -3,3 +3,5 @@ tests
 .idea
 .git
 .github
+.vscode
+__pycache__

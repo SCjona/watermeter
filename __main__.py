@@ -4,12 +4,12 @@ import sys
 
 
 def do_init(args):
-    from ImageProcessor import get_ocr
+    from image_processor import get_ocr
     get_ocr()
     print("OK")
 
 def do_run(args):
-    from ImageProcessor import ImageProcessor
+    from image_processor import ImageProcessor
     ip = ImageProcessor(args.image, args.config)
     result = ip.process(debug=args.debug)
 

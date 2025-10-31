@@ -2,7 +2,7 @@ import unittest
 from glob import glob
 import os
 
-from ImageProcessor import ImageProcessor
+from image_processor import ImageProcessor
 
 
 class TestImagesInTests(unittest.TestCase):

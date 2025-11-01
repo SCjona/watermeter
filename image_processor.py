@@ -24,7 +24,7 @@ class ImageProcessor:
         if self.img is None:
             raise ValueError("Image not found")
 
-    def process(self, previous_value: None | float = None, debug=False) -> float:
+    def process(self, previous_value: None | float = None, debug: str | None = None) -> float:
         # Rotate the image
         (h, w) = self.img.shape[:2]
         M = cv2.getRotationMatrix2D((w // 2, h // 2), self.config["image"]["rotate"], 1.0)
@@ -41,13 +41,37 @@ class ImageProcessor:
         debug_image = Image.fromarray(cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB))
         draw = ImageDraw.Draw(debug_image)
 
-        # === Extract digits ===
-        digits = self._parse_digits(cropped, draw, self.config["digits"])
-        decimal_digits = self._parse_digits(cropped, draw, self.config["decimal_digits"])
+        # Extract digits
+        # error handling so debug image still gets created
+        err = None
+        try:
+            digits = self._parse_digits(cropped, draw, self.config["digits"])
+        except Exception as e:
+            if err is None:
+                err = e
+        try:
+            decimal_digits = self._parse_digits(cropped, draw, self.config["decimal_digits"])
+        except Exception as e:
+            if err is None:
+                err = e
         if decimal_digits is None:
-            decimal_digits = self._parse_analogs(cropped, draw, self.config["decimal_analogs"])
+            try:
+                decimal_digits = self._parse_analogs(cropped, draw, self.config["decimal_analogs"])
+            except Exception as e:
+                if err is None:
+                    err = e
 
-        final_value = float(digits)
+        if debug is not None:
+            # Save the combined output
+            #self.__debug_show_image("digits", combined)
+            #self.__debug_show_image("debug", debug_image)
+            debug_image.save(debug)
+            print("Debug image saved to " + debug)
+
+        if err:
+            raise err
+
+        final_value = float(digits.replace("?", "0")) # if last digit parsing fails replace with 0
         if decimal_digits:
             decimal_value = float("0." + decimal_digits)
             if previous_value:
@@ -58,22 +82,15 @@ class ImageProcessor:
                     final_value += math.floor(previous_value) % 10 # add final digit of previous value
             final_value += decimal_value
 
-
-        if debug:
-            # Save the combined output
-            #self.__debug_show_image("digits", combined)
-            self.__debug_show_image("debug", debug_image)
-            debug_image.save("debug_image.png")
-            print("✅ Digits extracted and saved as 'debug_image.png'")
-            print("Read value:", final_value)
         return final_value
 
-    def _parse_digits(self, image, draw: ImageDraw.ImageDraw, digit_config: dict):
+    def _parse_digits(self, image, draw: ImageDraw.ImageDraw, digit_config: list[dict]):
         if len(digit_config) == 0:
             return None
 
-        digit_images = []
+        final_text = ""
         for d in digit_config:
+            is_last_digit = d == digit_config[-1]
             dx, dy, dw, dh = d["x"], d["y"], d["width"], d["height"]
             digit_img = image[dy:dy + dh, dx:dx + dw]
 
@@ -88,31 +105,29 @@ class ImageProcessor:
             if contrast != 0:
                 digit_pil = ImageEnhance.Contrast(digit_pil).enhance(1 + contrast / 100)
 
-            digit_images.append(digit_pil)
             draw.rectangle((dx, dy, dx + dw - 1, dy + dh - 1), outline=(255, 0, 0), width=1)
-            # self.__debug_show_image("digit", digit_pil)
+            #self.__debug_show_image("digit", digit_pil)
+            text = get_ocr().readtext(cv2.cvtColor(np.array(digit_pil), cv2.COLOR_RGB2BGR), allowlist="0123456789")
+            if len(text) != 1:
+                if is_last_digit:
+                    final_text += "?"
+                    continue
+                raise ValueError("OCR failed #1")
+            confidence = text[0][2]
+            text = text[0][1]
+            if len(text) != 1:
+                if is_last_digit:
+                    final_text += "?"
+                    continue
+                raise ValueError("OCR failed #2")
+            if confidence < 0.5:
+                if is_last_digit:
+                    final_text += "?"
+                    continue
+                raise ValueError("OCR low confidence #3")
+            final_text += text
 
-        # === Combine digits horizontally ===
-        widths, heights = zip(*(d.size for d in digit_images))
-        total_width = sum(widths)
-        max_height = max(heights)
-
-        combined = Image.new("RGB", (total_width, max_height), color=(255, 255, 255))
-        x_offset = 0
-        for d in digit_images:
-            combined.paste(d, (x_offset, 0))
-            x_offset += d.width
-
-        text = get_ocr().readtext(cv2.cvtColor(np.array(combined), cv2.COLOR_RGB2BGR), allowlist="0123456789")
-        if len(text) != 1:
-            raise ValueError("OCR failed #1")
-        confidence = text[0][2]
-        text = text[0][1]
-        if len(text) != len(digit_config):
-            raise ValueError("OCR failed #2")
-        if confidence < 0.5:
-            raise ValueError("OCR low confidence #3")
-        return text
+        return final_text
 
     def _parse_analogs(self, image, draw: ImageDraw.ImageDraw, analogs_config: list[dict]) -> str | None:
         if len(analogs_config) == 0:

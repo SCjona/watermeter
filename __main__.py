@@ -55,7 +55,7 @@ def main():
     action_run.add_argument("-i", "--image", required=True, help="Path to input image")
     action_run.add_argument("-c", "--config", required=True, help="Path to JSON config file")
     action_run.add_argument("-v", "--value", required=True, help="Path to (last) value file")
-    action_run.add_argument("-d", "--debug", required=False, type=bool, default=False, help="Save debugging image to help diagnose issues")
+    action_run.add_argument("-d", "--debug", required=False, default=None, help="Path to save debug image for diagnostics")
     action_run.set_defaults(func=do_run)
 
     args = parser.parse_args()

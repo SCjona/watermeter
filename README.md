@@ -96,12 +96,12 @@ This version uses [**EasyOCR**](https://github.com/JaidedAI/EasyOCR), which is b
 * Support for multiple fonts and rotated digits
 * Fast and accurate performance on CPU (no CUDA required)
 
-### 🔹 Context-Aware Parsing
+## 🧠 Context-Aware Parsing
 
-Reading analog water meters isn’t always straightforward — small perspective distortions, glare, or dial overlaps can cause subtle OCR errors.
+Reading analog water meters isn’t always straightforward - small perspective distortions, glare, or dial overlaps can cause subtle OCR errors.
 To improve accuracy, this project uses **context-aware logic** that considers relationships between multiple readings instead of treating each digit or dial in isolation.
 
-#### 🔹 Analog Dial Correction
+### 🔹 Analog Dial Correction
 
 For meters with several rotating dials (the *decimal_analogs* section in your config), the system compares the detected pointer angles across all dials.
 Because analog dials are mechanically linked, a small offset on one dial (e.g., the pointer slightly before or after a number) can be corrected by analyzing the adjacent dials’ positions.
@@ -111,7 +111,7 @@ This significantly reduces false readings caused by:
 * Shadows or glare on one dial
 * Slight pointer misalignment
 
-#### 🔹 Integer–Decimal Consistency
+### 🔹 Integer–Decimal Consistency
 
 Analog water meters often have **rolling digit wheels**, where the last (rightmost) digit is partially rotated when transitioning to the next value.
 To handle this, the integer OCR results are **cross-checked against the decimal dials**:

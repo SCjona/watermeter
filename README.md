@@ -96,11 +96,7 @@ This version uses [**EasyOCR**](https://github.com/JaidedAI/EasyOCR), which is b
 * Support for multiple fonts and rotated digits
 * Fast and accurate performance on CPU (no CUDA required)
 
-Perfect — here’s a polished new section you can drop straight into your README (before or after the "Features" section). It describes your **context-aware parsing logic** in a clear, user-friendly way, and adds a concise entry to your **Feature list**.
-
----
-
-### 🧠 Context-Aware Parsing
+### 🔹 Context-Aware Parsing
 
 Reading analog water meters isn’t always straightforward — small perspective distortions, glare, or dial overlaps can cause subtle OCR errors.
 To improve accuracy, this project uses **context-aware logic** that considers relationships between multiple readings instead of treating each digit or dial in isolation.

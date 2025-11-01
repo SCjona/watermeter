@@ -11,7 +11,13 @@ def do_init(args):
 def do_run(args):
     from image_processor import ImageProcessor
     ip = ImageProcessor(args.image, args.config)
-    result = ip.process(debug=args.debug)
+
+    previous = None
+    if os.path.exists(args.value):
+        with open(args.value, "r") as f:
+            previous = float(f.read())
+
+    result = ip.process(previous, debug=args.debug)
 
     max_threshold = None
     if "sanity" in ip.config:
@@ -22,10 +28,6 @@ def do_run(args):
         print("Could not parse image")
         sys.exit(1)
 
-    previous = None
-    if os.path.exists(args.value):
-        with open(args.value, "r") as f:
-            previous = float(f.read())
     if previous is not None:
         if result < previous:
             print(f"Result {result} is less than previous {previous}")

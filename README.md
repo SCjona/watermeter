@@ -9,6 +9,7 @@ This project processes an image of your water meter, crops and corrects it based
 ## 🚀 Features
 
 * 🧠 Uses **EasyOCR** for digit recognition (better than Tesseract for uneven lighting or low contrast).
+* 🔄 **Context-Aware Parsing:** Combines OCR results with analog dial analysis to auto-correct small visual or mechanical errors between integer and decimal parts.
 * 🔍 Supports **cropping and rotation** of the image to isolate the meter area.
 * ⚙️ Configurable for different meter layouts via a JSON config file.
 * 🧮 Includes **sanity checking**: ensures readings are consistent and realistic.
@@ -33,7 +34,7 @@ Then the cron job should process the camera image with this tool. The resulting 
 
 ## 🧩 Example Configuration
 
-Create a file named `config.json` based off the [configration example in this repository](./config-example.json)
+Create a file named `config.json` based off the [configration example in this repository](./config-example.json). Also create a `value.txt` file with your current meter reading for context aware parsing.
 
 ---
 
@@ -94,6 +95,36 @@ This version uses [**EasyOCR**](https://github.com/JaidedAI/EasyOCR), which is b
 * Better character recognition under poor lighting
 * Support for multiple fonts and rotated digits
 * Fast and accurate performance on CPU (no CUDA required)
+
+Perfect — here’s a polished new section you can drop straight into your README (before or after the "Features" section). It describes your **context-aware parsing logic** in a clear, user-friendly way, and adds a concise entry to your **Feature list**.
+
+---
+
+### 🧠 Context-Aware Parsing
+
+Reading analog water meters isn’t always straightforward — small perspective distortions, glare, or dial overlaps can cause subtle OCR errors.
+To improve accuracy, this project uses **context-aware logic** that considers relationships between multiple readings instead of treating each digit or dial in isolation.
+
+#### 🔹 Analog Dial Correction
+
+For meters with several rotating dials (the *decimal_analogs* section in your config), the system compares the detected pointer angles across all dials.
+Because analog dials are mechanically linked, a small offset on one dial (e.g., the pointer slightly before or after a number) can be corrected by analyzing the adjacent dials’ positions.
+This significantly reduces false readings caused by:
+
+* Camera perspective skew
+* Shadows or glare on one dial
+* Slight pointer misalignment
+
+#### 🔹 Integer–Decimal Consistency
+
+Analog water meters often have **rolling digit wheels**, where the last (rightmost) digit is partially rotated when transitioning to the next value.
+To handle this, the integer OCR results are **cross-checked against the decimal dials**:
+
+* If the decimal dial indicates that a rollover is happening (e.g., between 0.2 and 1), the last integer digit is ignored and the previous value is used.
+* This prevents misreads such as `"12345"` when the true reading is `"12344.9"`.
+* This also prevents misreads from partially rotated digits such as `12346.4` when OCR detects the `6` as `0` because it is partially cut off
+
+This context-aware correction makes the final reading far more reliable than pure OCR alone.
 
 ---
 

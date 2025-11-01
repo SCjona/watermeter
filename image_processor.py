@@ -24,7 +24,7 @@ class ImageProcessor:
         if self.img is None:
             raise ValueError("Image not found")
 
-    def process(self, debug=False) -> float:
+    def process(self, previous_value: None | float = None, debug=False) -> float:
         # Rotate the image
         (h, w) = self.img.shape[:2]
         M = cv2.getRotationMatrix2D((w // 2, h // 2), self.config["image"]["rotate"], 1.0)
@@ -49,7 +49,14 @@ class ImageProcessor:
 
         final_value = float(digits)
         if decimal_digits:
-            final_value += float("0." + decimal_digits)
+            decimal_value = float("0." + decimal_digits)
+            if previous_value:
+                # context aware parsing, last digit of the integer value may be wrong due to rotating nature
+                # check if we're in range of it being inaccurate
+                if decimal_value > 0.2:
+                    final_value = math.floor(final_value / 10) * 10 # remove final digit
+                    final_value += math.floor(previous_value) % 10 # add final digit of previous value
+            final_value += decimal_value
 
 
         if debug:

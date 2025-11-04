@@ -120,11 +120,6 @@ class ImageProcessor:
                     final_text += "?"
                     continue
                 raise ValueError("OCR failed #2")
-            if confidence < 0.5:
-                if is_last_digit:
-                    final_text += "?"
-                    continue
-                raise ValueError("OCR low confidence #3")
             final_text += text
 
         return final_text

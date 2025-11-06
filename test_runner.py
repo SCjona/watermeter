@@ -24,7 +24,7 @@ class TestImagesInTests(unittest.TestCase):
             value = ip.process(previous_value)
             with open(result_path, "r") as result_file:
                 result = float(result_file.read())
-            self.assertEqual(result, value)
+            self.assertEqual(result, value, msg=f"image {image}")
             previous_value = value
 
 

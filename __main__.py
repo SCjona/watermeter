@@ -32,7 +32,7 @@ def do_run(args):
         if result < previous:
             print(f"Result {result} is less than previous {previous}")
             sys.exit(1)
-        elif result > previous + 0.2:
+        elif max_threshold and result > previous + max_threshold:
             print(f"Result {result} exceeds previous + {max_threshold} ({previous + max_threshold})")
             sys.exit(1)
 

@@ -140,10 +140,12 @@ class ImageProcessor:
 
             this_value = result[i]
             next_value = result[i + 1]
-            if this_value % 1 > 0.9 and next_value < 1:
-                this_value += 0.1
-            elif this_value % 1 < 0.1 and next_value > 9:
-                this_value -= 0.1
+            corr_percent = 20
+            if this_value % 1 > (1 - corr_percent / 100) and next_value < (corr_percent / 10):
+                this_value += (1 - corr_percent / 100)
+            elif this_value % 1 < (corr_percent / 100) and next_value > (10 - corr_percent / 10):
+                this_value -= (1 - corr_percent / 100)
+            this_value = this_value % 10
             result_str += str(math.floor(this_value))
 
         return result_str
@@ -194,11 +196,22 @@ class ImageProcessor:
         furthest_idx = np.argmax(distances)
         py, px = white_pixels[furthest_idx]
         pdx = px - cx
-        pdy = cy - py
-        angle = math.degrees(math.atan2(pdx, pdy)) % 360
+        pdy = py - cy
+        angle = (math.degrees(math.atan2(pdy, pdx)) + 90) % 360
         value = angle / 36.0
 
         draw.line((dx + cx, dy + cy, dx + px, dy + py), fill=(0, 255, 0), width=3)
+
+        def draw_debug_line_for_angle(angle, color):
+            angle = angle - 90
+            px = dx + cx + math.cos(math.radians(angle)) * cx
+            py = dy + cy + math.sin(math.radians(angle)) * cy
+            draw.line((dx + cx, dy + cy, px, py), fill=color)
+
+        #for i in range(0, 10):
+        #    draw_debug_line_for_angle(i * 36, (0, 0, 100 + i * 10))
+        draw_debug_line_for_angle(angle, (255, 255, 0))
+
 
         if value < 0 or value >= 10:
             raise ValueError("Invalid angle")

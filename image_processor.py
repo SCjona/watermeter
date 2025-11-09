@@ -71,15 +71,15 @@ class ImageProcessor:
         if err:
             raise err
 
-        final_value = float(digits.replace("?", "0")) # if last digit parsing fails replace with 0
+        #print(f"Raw results: {digits}.{decimal_digits}")
+        final_value = float(digits.replace("?", "0")) # if digit parsing fails replace with 0
         if decimal_digits:
             decimal_value = float("0." + decimal_digits)
             if previous_value:
                 # context aware parsing, last digit of the integer value may be wrong due to rotating nature
-                # check if we're in range of it being inaccurate
+                # check if we're in range of it being inaccurate and just use last main value
                 if decimal_value > 0.2:
-                    final_value = math.floor(final_value / 10) * 10 # remove final digit
-                    final_value += math.floor(previous_value) % 10 # add final digit of previous value
+                    final_value = math.floor(previous_value)
             final_value += decimal_value
 
         return final_value
@@ -90,7 +90,6 @@ class ImageProcessor:
 
         final_text = ""
         for d in digit_config:
-            is_last_digit = d == digit_config[-1]
             dx, dy, dw, dh = d["x"], d["y"], d["width"], d["height"]
             digit_img = image[dy:dy + dh, dx:dx + dw]
 
@@ -109,17 +108,13 @@ class ImageProcessor:
             #self.__debug_show_image("digit", digit_pil)
             text = get_ocr().readtext(cv2.cvtColor(np.array(digit_pil), cv2.COLOR_RGB2BGR), allowlist="0123456789")
             if len(text) != 1:
-                if is_last_digit:
-                    final_text += "?"
-                    continue
-                raise ValueError("OCR failed #1")
+                final_text += "?"
+                continue
             confidence = text[0][2]
             text = text[0][1]
             if len(text) != 1:
-                if is_last_digit:
-                    final_text += "?"
-                    continue
-                raise ValueError("OCR failed #2")
+                final_text += "?"
+                continue
             final_text += text
 
         return final_text
